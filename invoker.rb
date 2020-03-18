@@ -16,4 +16,7 @@ result = rubies.sort.map do |ver, bin|
     [ver, out, err, status.exitstatus]
   end
 end.map {|th| th.value }
-print Marshal.dump(result)
+result = Marshal.dump(result)
+puts "ok:#{ result.size }"
+print result
+$stdout.close

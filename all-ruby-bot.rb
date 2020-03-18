@@ -125,8 +125,11 @@ class AllRubyBot < Sinatra::Base
     yield :end
 
     return "time limit exceeded (#{ TIMEOUT } sec.)" if !outputs
-
-    return format_outputs(Marshal.load(outputs))
+    if outputs =~ /\Aok:(\d+)\n/
+      return format_outputs(Marshal.load($'))
+    else
+      return escape(outputs.lines.first)
+    end
   end
 
   # post json to Slack
