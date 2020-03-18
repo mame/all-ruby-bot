@@ -12,6 +12,10 @@ TIMEOUT = ENV.fetch("ALL_RUBY_BOT_TIMEOUT", "10").to_i
 Thread.report_on_exception = true
 
 class AllRubyBot < Sinatra::Base
+  get "/" do
+    "Hello?"
+  end
+
   # Slack App entrypoint
   post "/" do
     body = request.body.read
