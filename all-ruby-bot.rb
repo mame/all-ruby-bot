@@ -222,6 +222,7 @@ module DockerInvoker
     docker_run_cmd = [
       "docker", "run", "--rm",
       "--net=none",
+      "-m", "100M", "--oom-kill-disable",
       "--pids-limit", "1024",
       "--name", name,
     ]
