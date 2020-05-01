@@ -8,6 +8,7 @@ require "logger"
 SLACK_API_TOKEN = ENV["ALL_RUBY_BOT_SLACK_API_TOKEN"]
 SLACK_APP_SECRET_KEY = ENV["ALL_RUBY_BOT_SLACK_APP_SECRET_KEY"]
 EMOJI = ENV.fetch("ALL_RUBY_BOT_EMOJI", "thumbsup")
+ENABLE_MASTER = ENV["ALL_RUBY_ENABLE_MASTER"]
 TIMEOUT = ENV.fetch("ALL_RUBY_BOT_TIMEOUT", "10").to_i
 
 Thread.report_on_exception = true
@@ -94,6 +95,7 @@ class AllRubyBot < Sinatra::Base
 
       logger.info "command(#{ cmd ? cmd.dump: "nil" }, #{ inp ? inp.dump : "nil" })"
 
+      cmd = cmd.gsub("\u00a0", "")
       cmd = cmd.gsub(/[“”]/, ?")
       cmd = cmd.gsub(/[‘’]/, ?')
 
@@ -129,22 +131,30 @@ class AllRubyBot < Sinatra::Base
       f.write(inp)
       f.close
       inp = f.path
-      wrapper = "/invoker.rb"
-      volume = {
-        File.join(__dir__, wrapper) => wrapper,
-        f.path => "/inp",
-      }
-      DockerInvoker.docker_run(TIMEOUT, "rubylang/all-ruby", volume, ["ruby", wrapper] + cmd)
+      types = ["all-ruby"]
+      types << "rubyfarm" if ENABLE_MASTER
+      types.map do |type|
+        Thread.new do
+          volume = {
+            File.join(__dir__, "/#{ type }-invoker.rb") => "/invoker.rb",
+            f.path => "/inp",
+          }
+          DockerInvoker.docker_run(TIMEOUT, "rubylang/#{ type }", volume, ["ruby", "/invoker.rb"] + cmd)
+        end
+      end.map {|th| th.value }
     end
 
     yield :end
 
-    return "time limit exceeded (#{ TIMEOUT } sec.)" if !outputs
-    if outputs =~ /\Aok:(\d+)\n/
-      return format_outputs(Marshal.load($'))
-    else
-      return escape(outputs.lines.first)
+    outputs = outputs.flat_map do |output|
+      return "time limit exceeded (#{ TIMEOUT } sec.)" if output.nil?
+      if output =~ /\Aok:(\d+)\n/
+        Marshal.load($')
+      else
+        return escape(output.lines.first)
+      end
     end
+    return format_outputs(outputs)
   end
 
   # post json to Slack
