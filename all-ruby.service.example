@@ -1,0 +1,16 @@
+[Unit]
+Description=all-ruby slack bot
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/path/to/all-ruby-bot
+Environment=ALL_RUBY_BOT_SLACK_API_TOKEN=xoxb-...
+Environment=ALL_RUBY_BOT_SLACK_APP_SECRET_KEY=...32-digit-hexadecimal...
+Environment=ALL_RUBY_BOT_EMOJI=...emoji...(omittable)
+ExecStart=/snap/bin/bundle exec puma -e production -p 8000
+TimeoutSec=300
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
