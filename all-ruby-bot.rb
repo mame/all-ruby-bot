@@ -3,6 +3,7 @@ require "shellwords"
 require "tempfile"
 require "timeout"
 require "net/http"
+require "logger"
 
 SLACK_API_TOKEN = ENV["ALL_RUBY_BOT_SLACK_API_TOKEN"]
 SLACK_APP_SECRET_KEY = ENV["ALL_RUBY_BOT_SLACK_APP_SECRET_KEY"]
@@ -12,6 +13,18 @@ TIMEOUT = ENV.fetch("ALL_RUBY_BOT_TIMEOUT", "10").to_i
 Thread.report_on_exception = true
 
 class AllRubyBot < Sinatra::Base
+  configure do
+    enable :logging
+  end
+
+  configure :development do
+    set :logging, Logger::DEBUG
+  end
+
+  configure :production do
+    set :logging, Logger::INFO
+  end
+
   get "/" do
     "Hello?"
   end
@@ -78,6 +91,8 @@ class AllRubyBot < Sinatra::Base
 
     when /\A(.*?)\s*(?:```((?:.|\n)*)```)?\s*\z/
       cmd, inp = $1.strip, $2&.strip
+
+      logger.info "command(#{ cmd ? cmd.dump: "nil" }, #{ inp ? inp.dump : "nil" })"
 
       cmd = cmd.gsub(/[“”]/, ?")
       cmd = cmd.gsub(/[‘’]/, ?')
