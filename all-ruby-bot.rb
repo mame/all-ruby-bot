@@ -128,7 +128,7 @@ class AllRubyBot < Sinatra::Base
     yield :start
 
     outputs = Tempfile.open do |f|
-      f.write(inp)
+      f.write("\uFEFF" + inp)
       f.close
       inp = f.path
       types = ["all-ruby"]
@@ -185,6 +185,8 @@ class AllRubyBot < Sinatra::Base
     rs = rs.group_by {|i, ver, *res| res }
     attachments = rs.map do |(out, err, status), rs|
       vers = format_versions(rs.map {|i, ver,| [i, ver] })
+      out.force_encoding("UTF-8")
+      err.force_encoding("UTF-8")
       out = out.chomp.empty? ? nil : "｀｀｀#{ escape(out) }｀｀｀"
       err = err.chomp.empty? ? nil : "｀｀｀#{ escape(err) }｀｀｀"
       if out && err
