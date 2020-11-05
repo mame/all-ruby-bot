@@ -128,7 +128,7 @@ class AllRubyBot < Sinatra::Base
     yield :start
 
     outputs = Tempfile.open do |f|
-      f.write("\uFEFF" + inp)
+      f.write("\uFEFF" + inp) if inp
       f.close
       inp = f.path
       types = ["all-ruby"]
