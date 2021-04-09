@@ -90,7 +90,7 @@ class AllRubyBot < Sinatra::Base
     when "", "help"
       { text: help_message, thread_ts: true }
 
-    when /\A(.*?)\s*(?:```((?:.|\n)*)```)?\s*\z/
+    when /\A((?:.|\n)*?)\s*(?:```((?:.|\n)*)```)?\s*\z/
       cmd, inp = $1.strip, $2&.strip
 
       logger.info "command(#{ cmd ? cmd.dump: "nil" }, #{ inp ? inp.dump : "nil" })"
