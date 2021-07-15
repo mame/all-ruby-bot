@@ -96,6 +96,7 @@ class AllRubyBot < Sinatra::Base
       logger.info "command(#{ cmd ? cmd.dump: "nil" }, #{ inp ? inp.dump : "nil" })"
 
       cmd = cmd.gsub("\u00a0", "")
+      cmd = cmd.gsub(/\xEF\xBB\xBF|\xEF\xBF\xBE/, "")
       cmd = cmd.gsub(/[“”]/, ?")
       cmd = cmd.gsub(/[‘’]/, ?')
 
