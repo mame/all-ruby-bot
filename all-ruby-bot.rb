@@ -251,6 +251,7 @@ module DockerInvoker
       "--net=none",
       "-m", "100M", "--oom-kill-disable",
       "--pids-limit", "1024",
+      "-e", "LANG=C.UTF-8",
       "--name", name,
     ]
     volume.each do |from, to|
