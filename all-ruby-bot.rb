@@ -65,9 +65,9 @@ class AllRubyBot < Sinatra::Base
   # main event handler: all-ruby bot has been mentioned
   def on_mention(json)
     event = json[:event]
-    authed_users = json[:authed_users]
+    authed_users = json[:authorizations] || []
     text = event[:text].strip
-    text = text.gsub(Regexp.union(*authed_users.map {|s| "<@#{ s }>" }), "").strip
+    text = text.gsub(Regexp.union(*authed_users.map {|s| "<@#{ s[:user_id] }>" }), "").strip
 
     json = command(text) do |progress|
       case progress
