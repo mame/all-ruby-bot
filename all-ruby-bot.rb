@@ -1,3 +1,5 @@
+#!/usr/bin/env ruby
+
 require "slack_socket_mode_bot"
 require "shellwords"
 require "tempfile"
@@ -232,7 +234,7 @@ $app = SlackSocketModeBot.new(token: SLACK_BOT_TOKEN, app_token: SLACK_APP_TOKEN
   next unless event[:type] == "app_mention"
   next unless event[:text]
 
-  on_mention(json[:payload])
+  Thread.new { on_mention(json[:payload]) }
 end
 
 $app.run
