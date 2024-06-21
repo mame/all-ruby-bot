@@ -1,5 +1,3 @@
 source "https://rubygems.org"
 
-gem "puma"
-gem "foreman"
-gem "sinatra"
+gem "slack_socket_mode_bot"

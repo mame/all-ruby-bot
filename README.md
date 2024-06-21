@@ -6,17 +6,19 @@ A chat bot to run Ruby publicly
 
 ## Minimal Deployment
 
-* Setup Slack App (1)
+* Setup Slack App
   * Go to https://api.slack.com/apps and Create New App
-  * Memo "Signing Secret"
+  * Setup "Basic Information"
+    * Create an "App-Level Token" with a scope: connections:write
+    * Memo the token (starting with `xapp-`)
   * Setup "OAuth & Permissions"
     * Add Scopes: `app_mentions:read`, `chat:write`, and `reactions:write`
     * Memo "Bot User OAuth Access Token" (starting with `xoxb-`)
-* Setup the sinatra app anywhere
-  * with an environment varibale `ALL_RUBY_BOT_SLACK_API_TOKEN` set as "Bot User OAuth Access Token"
-  * with an environment varibale `ALL_RUBY_BOT_SLACK_APP_SECRET_KEY` set as "Signing Secret"
-* Setup Slack App (2)
   * Setup "Event Subscriptions"
-    * Add "Request URL"
     * Subscribe to `app_mention` bot events
+  * Setup "Socket Mode"
+    * Enable Socket Mode
   * "Install App"
+* Run all-ruby-bot.rb
+  * with an environment varibale `ALL_RUBY_BOT_SLACK_BOT_TOKEN` set as the "Bot User OAuth Access Token"
+  * with an environment varibale `ALL_RUBY_BOT_SLACK_APP_TOKEN` set as the "App-Level Token"
