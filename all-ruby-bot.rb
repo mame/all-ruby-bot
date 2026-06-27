@@ -11,7 +11,7 @@ SLACK_BOT_TOKEN = ENV["ALL_RUBY_BOT_SLACK_BOT_TOKEN"]
 SLACK_APP_TOKEN = ENV["ALL_RUBY_BOT_SLACK_APP_TOKEN"]
 EMOJI = ENV.fetch("ALL_RUBY_BOT_EMOJI", "thumbsup")
 ENABLE_MASTER = ENV["ALL_RUBY_ENABLE_MASTER"]
-TIMEOUT = ENV.fetch("ALL_RUBY_BOT_TIMEOUT", "10").to_i
+TIMEOUTS = ENV.fetch("ALL_RUBY_BOT_TIMEOUT", "10,20,30,60").split(",").map {|s| s.strip.to_i }
 
 # main event handler: all-ruby bot has been mentioned
 def on_mention(json)
@@ -90,7 +90,7 @@ def execute_ruby(cmd, inp)
           File.join(__dir__, "/#{ type }-invoker.rb") => "/invoker.rb",
           f.path => "/inp",
         }
-        DockerInvoker.docker_run(TIMEOUT, "rubylang/#{ type }", volume, ["ruby", "/invoker.rb"] + cmd)
+        DockerInvoker.docker_run(TIMEOUTS, "rubylang/#{ type }", volume, ["ruby", "/invoker.rb"] + cmd)
       end
     end.map {|th| th.value }
   end
@@ -98,7 +98,7 @@ def execute_ruby(cmd, inp)
   yield :end
 
   outputs = outputs.flat_map do |output|
-    return "time limit exceeded (#{ TIMEOUT } sec.)" if output.nil?
+    return "time limit exceeded (#{ TIMEOUTS.last } sec.)" if output.nil?
     if output =~ /\Aok:(\d+)\n/
       Marshal.load($')
     else
@@ -186,7 +186,17 @@ end
 module DockerInvoker
   module_function
 
-  def docker_run(timeout, image, volume, cmd)
+  def docker_run(timeouts, image, volume, cmd)
+    timeouts.each_with_index do |timeout, i|
+      out = docker_run_once(timeout, image, volume, cmd)
+      return out if out
+      $logger.info "timeout (#{ timeout } sec.) exceeded for #{ image }" +
+        (timeouts[i + 1] ? "; retrying with #{ timeouts[i + 1] } sec." : "; giving up")
+    end
+    nil
+  end
+
+  def docker_run_once(timeout, image, volume, cmd)
     name = "all-ruby-bot-#{ $$ }-#{ Time.now.to_f.to_s.tr(".", "-") }"
     docker_run_cmd = [
       "docker", "run", "--rm",
